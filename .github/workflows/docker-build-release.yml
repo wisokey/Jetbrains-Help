@@ -20,7 +20,7 @@ jobs:
       run: |
         chmod +x ./build-with-docker.sh
         ./build-with-docker.sh
-        docker save jetbrains-help:latest -o my-image.tar
+        docker save jetbrains-help:latest -o jetbrains-help.tar
 
     - name: Create Release
       id: create_release
