@@ -1,0 +1,44 @@
+name: Build and Release Docker Image
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v2
+
+    - name: Build Docker image
+      run: |
+        chmod +x ./build-with-docker.sh
+        ./build-with-docker.sh
+        docker save jetbrains-help:latest -o my-image.tar
+
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: release-${{ github.run_number }}
+        release_name: Release ${{ github.run_number }} - ${{ github.ref_name }}
+        draft: false
+        prerelease: false
+
+    - name: Upload Docker Image to Release
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./jetbrains-help.tar
+        asset_name: jetbrains-help.tar
+        asset_content_type: application/x-tar
